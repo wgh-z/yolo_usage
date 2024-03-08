@@ -42,7 +42,7 @@ while cap.isOpened():
         annotated_frame = frame.copy()
         annotator = Annotator(annotated_frame, line_width=2, example=str(results[0].names))
         det = results[0].boxes.data.cpu().numpy()
-        if len(det):
+        if len(det) and len(det[0]) == 7:  # 有目标，且有id元素
           for *xyxy, id, conf, cls in reversed(det):
             c = int(cls)  # integer class
             label = f"{int(id)} {results[0].names[c]} {conf:.2f}"
