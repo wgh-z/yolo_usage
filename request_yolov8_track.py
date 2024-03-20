@@ -35,7 +35,7 @@ classes = {'0': 'person', '1': 'bicycle', '10': 'fire hydrant', '11': 'stop sign
            }
 
 # video
-cap = cv.VideoCapture("test_person30.mp4")
+cap = cv.VideoCapture(r"E:\Projects\test_data\video\MOT\MOT17\test\MOT17-01.mp4")
 d_fps = 0
 while True:
     t1 = time.time()
