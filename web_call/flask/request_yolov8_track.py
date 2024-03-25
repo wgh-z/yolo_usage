@@ -1,4 +1,5 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
+# 3.5fps
 """
 Perform test request
 """
@@ -8,12 +9,14 @@ import requests
 import cv2 as cv
 import time
 import numpy as np
+from ultralytics.utils.plotting import Annotator, colors
 
-DETECTION_URL = 'http://192.168.31.190:2053/track/yolov8m'
-# DETECTION_URL = 'http://0.0.0.0:2053/track/yolov8m'
 
-classes = {'0': 'person', '1': 'bicycle', '10': 'fire hydrant', '11': 'stop sign',
-           '12': 'parking meter', '13': 'bench', '14': 'bird', '15': 'cat',
+# DETECTION_URL = 'http://192.168.31.190:4006/track/yolov8m'
+DETECTION_URL = 'http://127.0.0.1:4006/track/yolov8m'
+
+names = {0: 'person', 1: 'bicycle', 10: 'fire hydrant', 11: 'stop sign',
+           12: 'parking meter', 13: 'bench', 14: 'bird', 15: 'cat',
            '16': 'dog', '17': 'horse', '18': 'sheep', '19': 'cow',
            '2': 'car', '20': 'elephant', '21': 'bear', '22': 'zebra',
            '23': 'giraffe', '24': 'backpack', '25': 'umbrella', '26': 'handbag',
@@ -44,28 +47,28 @@ while True:
     img = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
     image_data = cv.imencode(".jpg", img)[1].tobytes()
 
-    response = requests.post(DETECTION_URL,
+    det = requests.post(DETECTION_URL,
                              files={'image': image_data,
-                                    'stream': False,  # for stream video
+                                    # 'stream': False,  # for stream video
                                     'persist': True,  # for stream video
                                     'classes': 0,  # 0 for person
                                     'tracker': 'bytetrack.yaml'  # or 'botsort.yaml'
                                     }
-                             ).json()
-
-    for *xyxy, id, conf, cls in response:
-        cv.rectangle(frame, (int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3])), (0, 255, 0), 2)
-        cv.putText(frame,
-                    f"{int(id)} {classes[str(int(cls))]} {conf:.2f}",
-                    (int(xyxy[0]), int(xyxy[1])),
-                    cv.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (0, 0, 255),
-                    2,
-                    )
+                             )
+    det = det.json()
+    # 自定义绘制
+    annotated_frame = frame.copy()
+    annotator = Annotator(annotated_frame, line_width=2, example=str(names))
+    if len(det) and len(det[0]) == 7:  # 有目标，且有id元素
+        for *xyxy, id, conf, cls in det:
+            c = int(cls)  # integer class
+            label = f"{int(id)} {names[c]} {conf:.2f}"
+            annotator.box_label(xyxy, label, color=colors(c, True))
+    annotated_frame = annotator.result()
+    
     d_fps = (d_fps + (1. / (time.time() - t1))) / 2
 #     print(f"FPS={d_fps:.2f}")
-    cv.putText(frame,
+    cv.putText(annotated_frame,
                 f"FPS={d_fps:.2f}",
                 (10, 50),
                 cv.FONT_HERSHEY_SIMPLEX,
@@ -73,7 +76,7 @@ while True:
                 (0, 0, 255),
                 2,
                 )
-    cv.imshow("frame", frame)
+    cv.imshow("frame", annotated_frame)
     if cv.waitKey(1) & 0xFF == ord("q"):
         break
 cap.release()

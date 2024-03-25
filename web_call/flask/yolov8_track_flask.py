@@ -11,6 +11,7 @@ import torch
 from flask import Flask, request
 from PIL import Image
 from ultralytics import YOLO
+import time
 
 
 app = Flask(__name__)
@@ -32,6 +33,7 @@ def predict():
         #     im = Image.open(io.BytesIO(f.read()))
 
         # Method 2
+        t1 = time.time()
         im_file = request.files['image']
         im_bytes = im_file.read()
         im = Image.open(io.BytesIO(im_bytes))
@@ -40,24 +42,29 @@ def predict():
         classes = request.files['classes'].read()
         tracker = request.files['tracker'].read().decode('utf-8')
 
+        t2 = time.time()
+
         results = model.track(im,
                               persist=persist,
                             #   stream=True,
                               half=True,
                               classes = int(classes),
                               tracker=tracker,
-                              verbose=False
+                              verbose=False,
+                              imgsz=[384, 640]
                               )
+        t3 = time.time()
+        print(f"t2-t1={t2-t1:.2f}, t3-t2={t3-t2:.2f}")
         return results[0].boxes.data.cpu().numpy().tolist()
     
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Flask API exposing YOLOv5 model')
-    parser.add_argument('--port', default=2053, type=int, help='port number')
+    parser.add_argument('--port', default=4006, type=int, help='port number')
     # parser.add_argument('--model', nargs='+', default=['yolov5m'], help='model(s) to run, i.e. --model yolov5n yolov5s')
     opt = parser.parse_args()
 
     # for m in opt.model:
     model = YOLO(r"E:\Projects\weights\yolo\v8\detect\coco\yolov8m.pt")
 
-    app.run(host='0.0.0.0', port=opt.port, debug=True)  # debug=True causes Restarting with stat
+    app.run(host='0.0.0.0', port=opt.port, debug=False)  # debug=True causes Restarting with stat
