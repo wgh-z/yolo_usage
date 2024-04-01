@@ -1,3 +1,7 @@
 # pip install -r requirements.txt
+
 ultralytics
-opencv-python
+albumentations
+comet
+pycocotools
+numpy==1.23.5
