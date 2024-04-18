@@ -6,8 +6,7 @@ import time
 
 
 # Load the YOLOv8 model
-# model = YOLO(r"E:\Projects\weight\yolo\v8\detect\export\openvino\yolov8s_openvino_model_384x640_half")  # 35ms gpu
-model = YOLO(r"E:\Projects\weight\yolo\v8\detect\export\openvino\yolov8s_openvino_model_384x640")  # 35ms gpu
+model = YOLO(r"E:\Projects\weights\yolo\v8\detect\export\openvino\yolov8s_openvino_model_384x640")  # 35ms gpu
 
 # Open the video file
 video_path = r"E:\Projects\test_data\video\MOT17-test\MOT17-03.mp4"
@@ -33,6 +32,8 @@ while cap.isOpened():
             verbose=False,
             )
 
+        # det = results[0].boxes.data.cpu().numpy()
+        # names = results[0].names
         # boxes = results[0].boxes.xywh.cpu()
         # cls = results[0].boxes.cls.cpu()
         # conf = results[0].boxes.conf.cpu()
